@@ -4,6 +4,7 @@
 # crashcounter
 
 <!-- badges: start -->
+
 [![codecov](https://codecov.io/gh/jwood-iastate/crashcounter/branch/master/graph/badge.svg?token=ofsyBpE669)](https://codecov.io/gh/jwood-iastate/crashcounter)
 <!-- badges: end -->
 
@@ -17,13 +18,13 @@ specific conditions, etc.) using the function(s) in this package.
 You can install the development version of crashcounter like so:
 
 ``` r
-library(devtools)
-install_github("jwood-iastate/crashcounter")
+library(remotes)
+remotes::install_github("jwood-iastate/crashcounter")
 ```
 
 ## Example
 
-TO illustrate how this can be used, a roadway dataframe and a crash
+To illustrate how this can be used, a roadway dataframe and a crash
 dataframe are created and shown below.
 
 ``` r

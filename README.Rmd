@@ -26,13 +26,13 @@ The goal of crashcounter is to provide a simple function for use in preparing cr
 You can install the development version of crashcounter like so:
 
 ``` r
-library(devtools)
-install_github("jwood-iastate/crashcounter")
+library(remotes)
+remotes::install_github("jwood-iastate/crashcounter")
 ```
 
 ## Example
 
-TO illustrate how this can be used, a roadway dataframe and a crash dataframe are created and shown below.
+To illustrate how this can be used, a roadway dataframe and a crash dataframe are created and shown below.
 
 ```{r example}
 set.seed(123)
