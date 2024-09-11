@@ -4,6 +4,9 @@
 # crashcounter
 
 <!-- badges: start -->
+
+[![Codecov test
+coverage](https://codecov.io/gh/jwood-iastate/crashcounter/graph/badge.svg)](https://app.codecov.io/gh/jwood-iastate/crashcounter)
 <!-- badges: end -->
 
 The goal of crashcounter is to provide a simple function for use in

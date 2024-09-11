@@ -16,6 +16,7 @@ knitr::opts_chunk$set(
 # crashcounter
 
 <!-- badges: start -->
+[![Codecov test coverage](https://codecov.io/gh/jwood-iastate/crashcounter/graph/badge.svg)](https://app.codecov.io/gh/jwood-iastate/crashcounter)
 <!-- badges: end -->
 
 The goal of crashcounter is to provide a simple function for use in preparing crash data for count regression modeling. Users should be able to get crash counts for road segments (total crashes, crashes that meet specific conditions, etc.) using the function(s) in this package.
@@ -25,7 +26,8 @@ The goal of crashcounter is to provide a simple function for use in preparing cr
 You can install the development version of crashcounter like so:
 
 ``` r
-# FILL THIS IN! HOW CAN PEOPLE INSTALL YOUR DEV PACKAGE?
+library(devtools)
+install_github("jwood-iastate/crashcounter")
 ```
 
 ## Example
