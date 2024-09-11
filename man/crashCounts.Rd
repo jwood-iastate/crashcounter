@@ -55,3 +55,97 @@ This function merges a roads dataset with a crashes dataset based on specified r
 and segment boundaries. It then aggregates crash data per road segment per year, allowing
 for optional user-specified conditions to filter crashes based on various attributes.
 }
+\examples{
+set.seed(123)
+roads <- data.frame(
+  County = rep(c("A", "B"), each = 4),
+  RouteNo = rep(1:2, each = 2, times = 2),
+  Region = rep(c("North", "South"), each = 4),
+  BeginMeas = c(0, 10, 20, 30, 0, 15, 30, 45),
+  EndMeas = c(10, 20, 30, 40, 15, 30, 45, 60),
+  NoLanes = sample(2:4, 8, replace = TRUE),
+  LaneWidth = runif(8, 3.0, 3.5),
+  ShoulderWidth = runif(8, 1.0, 2.5),
+  SpeedLimit = sample(c(55, 65, 75), 8, replace = TRUE)
+)
+
+crashes <- data.frame(
+  County = sample(c("A", "B"), 50, replace = TRUE),
+  RouteNo = sample(1:2, 50, replace = TRUE),
+  Region = sample(c("North", "South"), 50, replace = TRUE),
+  Dist = runif(50, 0, 40),
+  Severity = sample(1:5, 50, replace = TRUE),
+  Type = sample(c("Collision", "Rollover", "Off-road", "Animal"), 50, replace = TRUE),
+  DayofWeek = sample(c("Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"), 50, replace = TRUE),
+  Month = sample(1:12, 50, replace = TRUE),
+  Year = sample(2018:2020, 50, replace = TRUE),
+  Time = sample(0:23, 50, replace = TRUE),
+  NoVehicles = sample(1:4, 50, replace = TRUE),
+  NoPeople = sample(1:6, 50, replace = TRUE),
+  NoPedestrians = sample(0:2, 50, replace = TRUE)
+)
+
+# Simple merge
+result_basic <- crashCounts(
+  roads = roads,
+  crashes = crashes,
+  road_id_vars = c("County", "RouteNo", "Region"),
+  start_mp = "BeginMeas",
+  end_mp = "EndMeas",
+  crash_mp = "Dist",
+  countvarname = "Total_Crashes"
+)
+
+# View the result
+print(result_basic)
+
+# Adding a condition
+result_severity <- crashCounts(
+  roads = result_basic, # Use the roads dataframe that has the total crashes
+  crashes = crashes,
+  road_id_vars = c("County", "RouteNo", "Region"),
+  start_mp = "BeginMeas",
+  end_mp = "EndMeas",
+  crash_mp = "Dist",
+  conditions = "Severity > 2",
+  countvarname = "FatalInjury_Crashes"
+)
+
+# View the result
+print(result_severity)
+
+# Alternative way to add a condition
+
+result_severity <- crashCounts(
+  roads = result_basic, # Use the roads dataframe that has the total crashes
+  crashes = crashes,
+  road_id_vars = c("County", "RouteNo", "Region"),
+  start_mp = "BeginMeas",
+  end_mp = "EndMeas",
+  crash_mp = "Dist",
+  conditions = expression(Severity > 2),
+  countvarname = "FatalInjury_Crashes"
+)
+
+# View the result
+print(result_severity)
+
+
+# Adding multiple conditions
+result_multiple <- crashCounts(
+  roads = result_severity,
+  crashes = crashes,
+  road_id_vars = c("County", "RouteNo", "Region"),
+  start_mp = "BeginMeas",
+  end_mp = "EndMeas",
+  crash_mp = "Dist",
+  conditions = list(
+    expression(Severity > 2),
+    expression(Time < 6 | Time > 18)  # Assuming nighttime is before 6 AM or after 6 PM
+  ),
+  countvarname = "NightFatalInj_Crashes"
+)
+
+# View the result
+print(result_multiple)
+}

@@ -32,15 +32,6 @@
 #' @import dplyr
 #'
 #' @examples
-#' data("washington_roads")
-#' sichel.mod <- sichel(Total_crashes ~ lnaadt + lnlength,
-#'                      data = washington_roads,
-#'                      method = "BFGS",
-#'                      max.iters = 100)
-#' summary(sichel.mod)
-#' 
-#' 
-#' 
 #' set.seed(123)
 #' roads <- data.frame(
 #'   County = rep(c("A", "B"), each = 4),
@@ -53,7 +44,7 @@
 #'   ShoulderWidth = runif(8, 1.0, 2.5),
 #'   SpeedLimit = sample(c(55, 65, 75), 8, replace = TRUE)
 #' )
-#' 
+#'
 #' crashes <- data.frame(
 #'   County = sample(c("A", "B"), 50, replace = TRUE),
 #'   RouteNo = sample(1:2, 50, replace = TRUE),
@@ -69,7 +60,7 @@
 #'   NoPeople = sample(1:6, 50, replace = TRUE),
 #'   NoPedestrians = sample(0:2, 50, replace = TRUE)
 #' )
-#' 
+#'
 #' # Simple merge
 #' result_basic <- crashCounts(
 #'   roads = roads,
@@ -80,10 +71,10 @@
 #'   crash_mp = "Dist",
 #'   countvarname = "Total_Crashes"
 #' )
-#' 
+#'
 #' # View the result
 #' print(result_basic)
-#' 
+#'
 #' # Adding a condition
 #' result_severity <- crashCounts(
 #'   roads = result_basic, # Use the roads dataframe that has the total crashes
@@ -95,12 +86,12 @@
 #'   conditions = "Severity > 2",
 #'   countvarname = "FatalInjury_Crashes"
 #' )
-#' 
+#'
 #' # View the result
 #' print(result_severity)
-#' 
+#'
 #' # Alternative way to add a condition
-#' 
+#'
 #' result_severity <- crashCounts(
 #'   roads = result_basic, # Use the roads dataframe that has the total crashes
 #'   crashes = crashes,
@@ -111,11 +102,11 @@
 #'   conditions = expression(Severity > 2),
 #'   countvarname = "FatalInjury_Crashes"
 #' )
-#' 
+#'
 #' # View the result
 #' print(result_severity)
-#' 
-#' 
+#'
+#'
 #' # Adding multiple conditions
 #' result_multiple <- crashCounts(
 #'   roads = result_severity,
@@ -130,7 +121,7 @@
 #'   ),
 #'   countvarname = "NightFatalInj_Crashes"
 #' )
-#' 
+#'
 #' # View the result
 #' print(result_multiple)
 #' @export
@@ -141,15 +132,6 @@ crashCounts <- function(roads, crashes,
                         crash_mp,
                         conditions = NULL,
                         countvarname = "Total_Crashes") {
-
-  # # Ensure data types for merging are compatible
-  # roads <- roads %>%
-  #   mutate(across(all_of(c(start_mp, end_mp)), as.numeric)) %>%
-  #   mutate(across(all_of(road_id_vars), as.character))
-  #
-  # crashes <- crashes %>%
-  #   mutate(across(all_of(crash_mp), as.numeric)) %>%
-  #   mutate(across(all_of(road_id_vars), as.character))
 
   # Perform the join with criteria using dynamic identifiers and boundaries
   merged_data <- crashes %>%
