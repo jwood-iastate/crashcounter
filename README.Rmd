@@ -16,7 +16,7 @@ knitr::opts_chunk$set(
 # crashcounter
 
 <!-- badges: start -->
-[![codecov](https://codecov.io/gh/jwood-iastate/crashcounter/graph/badge.svg?token=ofsyBpE669)](https://codecov.io/gh/jwood-iastate/crashcounter)
+[![codecov](https://codecov.io/gh/jwood-iastate/crashcounter/branch/master/graph/badge.svg?token=ofsyBpE669)](https://codecov.io/gh/jwood-iastate/crashcounter)
 <!-- badges: end -->
 
 The goal of crashcounter is to provide a simple function for use in preparing crash data for count regression modeling. Users should be able to get crash counts for road segments (total crashes, crashes that meet specific conditions, etc.) using the function(s) in this package.
