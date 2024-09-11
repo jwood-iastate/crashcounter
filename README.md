@@ -16,7 +16,8 @@ specific conditions, etc.) using the function(s) in this package.
 You can install the development version of crashcounter like so:
 
 ``` r
-# FILL THIS IN! HOW CAN PEOPLE INSTALL YOUR DEV PACKAGE?
+library(devtools)
+install_github("jwood-iastate/crashcounter")
 ```
 
 ## Example
