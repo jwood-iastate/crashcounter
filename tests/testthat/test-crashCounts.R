@@ -83,6 +83,18 @@ test_that("Package Single condition", {
       start_mp = "BeginMeas",
       end_mp = "EndMeas",
       crash_mp = "Dist",
+      conditions = expression(Severity > 2),  # Severity condition      
+      countvarname = "NightFatalInj_Crashes"
+    )
+  )
+
+    expect_warning(crashCounts(
+      roads = roads,
+      crashes = crashes,
+      road_id_vars = c("County", "RouteNo", "Region"),
+      start_mp = "BeginMeas",
+      end_mp = "EndMeas",
+      crash_mp = "Dist",
       conditions = "Severity > 2",  # Severity condition      
       countvarname = "NightFatalInj_Crashes"
     )
