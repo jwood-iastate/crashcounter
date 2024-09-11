@@ -1,0 +1,15 @@
+Package: crashcounter
+Type: Package
+Title: Generate crash counts for road segments
+Version: 0.1.0
+Author: c(person("Wood", "Jonathan", role = c("aut", "cre"), email = "jwood2@iastate.edu", comment = c(ORCID = "0000-0003-0131-6384")))
+Maintainer: Jonathan Wood <jwood2@iastate.edu>
+Description: Uses `dplyr` to combine crash data with road segments by creating a new variables in the roadway file with crash counts for all crashes on each segment that meet the specifid criteria.
+License: MIT + file LICENSE
+Encoding: UTF-8
+LazyData: true
+Imports: dplyr
+RoxygenNote: 7.3.2
+Suggests: 
+    testthat (>= 3.0.0)
+Config/testthat/edition: 3

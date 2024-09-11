@@ -1,0 +1,143 @@
+---
+output: github_document
+---
+
+<!-- README.md is generated from README.Rmd. Please edit that file -->
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  fig.path = "man/figures/README-",
+  out.width = "100%"
+)
+```
+
+# crashcounter
+
+<!-- badges: start -->
+<!-- badges: end -->
+
+The goal of crashcounter is to provide a simple function for use in preparing crash data for count regression modeling. Users should be able to get crash counts for road segments (total crashes, crashes that meet specific conditions, etc.) using the function(s) in this package.
+
+## Installation
+
+You can install the development version of crashcounter like so:
+
+``` r
+# FILL THIS IN! HOW CAN PEOPLE INSTALL YOUR DEV PACKAGE?
+```
+
+## Example
+
+TO illustrate how this can be used, a roadway dataframe and a crash dataframe are created and shown below.
+
+```{r example}
+set.seed(123)
+roads <- data.frame(
+  County = rep(c("A", "B"), each = 4),
+  RouteNo = rep(1:2, each = 2, times = 2),
+  Region = rep(c("North", "South"), each = 4),
+  BeginMeas = c(0, 10, 20, 30, 0, 15, 30, 45),
+  EndMeas = c(10, 20, 30, 40, 15, 30, 45, 60),
+  NoLanes = sample(2:4, 8, replace = TRUE),
+  LaneWidth = runif(8, 3.0, 3.5),
+  ShoulderWidth = runif(8, 1.0, 2.5),
+  SpeedLimit = sample(c(55, 65, 75), 8, replace = TRUE)
+)
+
+crashes <- data.frame(
+  County = sample(c("A", "B"), 50, replace = TRUE),
+  RouteNo = sample(1:2, 50, replace = TRUE),
+  Region = sample(c("North", "South"), 50, replace = TRUE),
+  Dist = runif(50, 0, 40),
+  Severity = sample(1:5, 50, replace = TRUE),
+  Type = sample(c("Collision", "Rollover", "Off-road", "Animal"), 50, replace = TRUE),
+  DayofWeek = sample(c("Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"), 50, replace = TRUE),
+  Month = sample(1:12, 50, replace = TRUE),
+  Year = sample(2018:2020, 50, replace = TRUE),
+  Time = sample(0:23, 50, replace = TRUE),
+  NoVehicles = sample(1:4, 50, replace = TRUE),
+  NoPeople = sample(1:6, 50, replace = TRUE),
+  NoPedestrians = sample(0:2, 50, replace = TRUE)
+)
+
+print(roads)
+```
+
+
+```{r}
+head(crashes)
+```
+
+For this example, the unique road segments are identified using the combination of:
+
+ - `County`
+ - `Region`
+ - `RouteNo`
+ - `BeginMeas`
+ - `EndMeas`
+ 
+In many cases, roadway datasets will have a single variable identifying the route (in this case, the combination of `County`, `Region`, and `RouteNo` are required). The variable `BeginMeas` is the same concept as a starting milepost and `EndMeas` is the same concept as the end milepost for the road segment.
+
+To identify crashes that occur on a given road segment, they have to match `County`, `Region`, and `RouteNo` and have a value for `Dist` that is greater than or equal to `BeginMeas` and less than `EndMeas`. To get specific crash types, conditions can be added.
+
+While these are synthetic data, actual datasets can easily be used.
+
+To use the function for getting the crash counts for total crashes (no conditions):
+```{r}
+library(crashcounter) # Load the library for use
+
+result_basic <- crashCounts(
+  roads = roads,
+  crashes = crashes,
+  road_id_vars = c("County", "RouteNo", "Region"),
+  start_mp = "BeginMeas",
+  end_mp = "EndMeas",
+  crash_mp = "Dist",
+  countvarname = "Total_Crashes"
+)
+
+# View the result
+print(result_basic)
+```
+
+Adding Fatal+Injury Crashes - Illustrating the use of a single condition:
+```{r}
+result_severity <- crashCounts(
+  roads = result_basic, # Use the roads dataframe that has the total crashes
+  crashes = crashes,
+  road_id_vars = c("County", "RouteNo", "Region"),
+  start_mp = "BeginMeas",
+  end_mp = "EndMeas",
+  crash_mp = "Dist",
+  conditions = "Severity > 2",
+  countvarname = "FatalInjury_Crashes"
+)
+
+# View the result
+print(result_severity)
+```
+
+Next, add more conditions (in this case, nighttime fatal+injury crashes):
+
+```{r}
+# Aggregation with multiple conditions: Count crashes with severity greater than 2 and during nighttime
+result_multiple <- crashCounts(
+  roads = result_severity,
+  crashes = crashes,
+  road_id_vars = c("County", "RouteNo", "Region"),
+  start_mp = "BeginMeas",
+  end_mp = "EndMeas",
+  crash_mp = "Dist",
+  conditions = list(
+    expression(Severity > 2),
+    expression(Time < 6 | Time > 18)  # Assuming nighttime is before 6 AM or after 6 PM
+  ),
+  countvarname = "NightFatalInj_Crashes"
+)
+
+# View the result
+print(result_multiple)
+```
+
