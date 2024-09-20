@@ -1,4 +1,4 @@
-library(testthat)
+# library(testthat)
 
 test_that("crashCounts.seg.gdb works with sample data", {
   library(sf)
@@ -58,7 +58,8 @@ test_that("crashCounts.seg.gdb works when road_id_vars is NULL", {
     crash_id = 1:5,
     crash_latitude = c(34.0505, 34.055, 34.065, 34.051, 34.062),
     crash_longitude = c(-118.245, -118.242, -118.235, -118.243, -118.238),
-    route_id = c("Route66", "I-5", "I-10", "I-5", "Route66")
+    route_id = c("Route66", "I-5", "I-10", "I-5", "Route66"),
+    Severity = c(1, 3, 2, 5, 4)
   )
 
   result <- crashCounts.seg.gdb(
@@ -74,8 +75,67 @@ test_that("crashCounts.seg.gdb works when road_id_vars is NULL", {
     projection_working = 3857
   )
 
+  result <- crashCounts.seg.gdb(
+    road_segments = result,
+    crashes = crashes_df,
+    crash_lat = "crash_latitude",
+    crash_long = "crash_longitude",
+    crashRoute = "route_id",
+    roadRoute = "route_id",
+    dist_feet = 75,
+    conditions = expression(Severity > 3),
+    countvarname = "Severe_Crashes",
+    projection_input = 4326,
+    projection_working = 3857
+  )
+
+  result <- crashCounts.seg.gdb(
+    road_segments = result,
+    crashes = crashes_df,
+    crash_lat = "crash_latitude",
+    crash_long = "crash_longitude",
+    crashRoute = "route_id",
+    roadRoute = "route_id",
+    dist_feet = 75,
+    conditions = list(expression(Severity > 2)),
+    countvarname = "Injury_Crashes",
+    projection_input = 4326,
+    projection_working = 3857
+  )
+
   expect_true("road_id" %in% names(result))
   expect_true("Total_Crashes" %in% names(result))
+})
+
+test_that("crashCounts.seg.gdb error from crash_coords being incorrect type", {
+  road_segments_df <- data.frame(
+    route_id = c("Route66", "I-5", "I-10")
+  )
+  road_segments_df$geometry <- st_sfc(
+    st_linestring(rbind(c(-118.25, 34.05), c(-118.24, 34.05))),
+    st_linestring(rbind(c(-118.24, 34.05), c(-118.24, 34.06))),
+    st_linestring(rbind(c(-118.24, 34.06), c(-118.23, 34.06)))
+  )
+  road_segments_sf <- st_sf(road_segments_df, crs = 4326)
+
+  crashes_df <- data.frame(
+    crash_latitude = c(34.0505, 34.055, 34.065, 34.051, 34.062),
+    crash_longitude = c(-118.245, -118.242, -118.235, -118.243, -118.238),
+    route_id = c("Route66", "I-5", "I-10", "I-5", "Route66")
+  )
+
+ expect_error(crashCounts.seg.gdb(
+    road_segments = road_segments_sf,
+    crashes = crashes_df,
+    crash_coords  = "crash_latitude",
+    crash_long = "crash_longitude",
+    road_id_vars = NULL,
+    crashRoute = "route_id",
+    roadRoute = "route_id",
+    dist_feet = 75,
+    projection_input = 4326,
+    projection_working = 3857
+  ))
 })
 
 test_that("crashCounts.seg.gdb works when road_geom is provided", {
@@ -215,8 +275,9 @@ test_that("crashCounts.seg.gdb works when crashRoute and roadRoute are NULL", {
 
   crashes_df <- data.frame(
     crash_id = 1:5,
-    crash_latitude = c(34.0505, 34.055, 34.065, 34.051, 34.062),
-    crash_longitude = c(-118.245, -118.242, -118.235, -118.243, -118.238)
+    crash_latitude = c(34.05, 34.055, 34.065, 34.051, 34.062),
+    crash_longitude = c(-118.25, -118.242, -118.235, -118.243, -118.238),
+    route_id = c("Route66", "I-5", "I-10", "I-5", "Route66")
   )
 
   result <- crashCounts.seg.gdb(
@@ -250,8 +311,8 @@ test_that("crashCounts.seg.gdb works when projection_working is NULL", {
 
   crashes_df <- data.frame(
     crash_id = 1:5,
-    crash_latitude = c(34.0505, 34.055, 34.065, 34.051, 34.062),
-    crash_longitude = c(-118.245, -118.242, -118.235, -118.243, -118.238),
+    crash_latitude = c(34.05, 34.055, 34.065, 34.051, 34.062),
+    crash_longitude = c(-118.25, -118.242, -118.235, -118.243, -118.238),
     route_id = c("Route66", "I-5", "I-10", "I-5", "Route66")
   )
 
@@ -448,6 +509,42 @@ test_that("crashCounts.seg errors when required columns are missing", {
   ))
 })
 
+test_that("crashCounts.seg works with conditions as expression", {
+  set.seed(123)
+  roads <- data.frame(
+    County = rep(c("A", "B"), each = 4),
+    RouteNo = rep(1:2, each = 2, times = 2),
+    Region = rep(c("North", "South"), each = 4),
+    BeginMeas = c(0, 10, 20, 30, 0, 15, 30, 45),
+    EndMeas = c(10, 20, 30, 40, 15, 30, 45, 60)
+  )
+
+  crashes <- data.frame(
+    County = sample(c("A", "B"), 50, replace = TRUE),
+    RouteNo = sample(1:2, 50, replace = TRUE),
+    Region = sample(c("North", "South"), 50, replace = TRUE),
+    Dist = runif(50, 0, 40),
+    Severity = sample(1:5, 50, replace = TRUE),
+    Time = sample(0:23, 50, replace = TRUE)
+  )
+
+  conditions_list <- expression(Severity > 2)
+
+  result <- crashCounts.seg(
+    roads = roads,
+    crashes = crashes,
+    road_id_vars = c("County", "RouteNo", "Region"),
+    start_mp = "BeginMeas",
+    end_mp = "EndMeas",
+    crash_mp = "Dist",
+    conditions = conditions_list,
+    countvarname = "Night_Severe_Crashes"
+  )
+
+  expect_true("Night_Severe_Crashes" %in% names(result))
+  expect_true(is.numeric(result$Night_Severe_Crashes))
+})
+
 test_that("crashCounts.seg works with conditions as list", {
   set.seed(123)
   roads <- data.frame(
@@ -484,3 +581,18 @@ test_that("crashCounts.seg works with conditions as list", {
   expect_true(is.numeric(result$Night_Severe_Crashes))
 })
 
+test_that("crashCounts.int works with geospatial data",{
+
+  # Using provided datasets
+  data(crashes)
+  data(intersections)
+
+  # Run the function
+  result <- crashCounts.int(
+    intersections = intersections,
+    crashes = crashes,
+    dist_feet = 300
+  )
+
+  expect_true("Total_Crashes" %in% names(result))
+})
