@@ -1,36 +1,35 @@
 #' Merge and Aggregate Crash Data by Road Segments
 #'
 #' This function merges a roads dataset with a crashes dataset based on specified route identifiers
-#' and segment boundaries. It then aggregates crash data per road segment per year, allowing
+#' and segment boundaries. It then aggregates crash data per road segment, allowing
 #' for optional user-specified conditions to filter crashes based on various attributes.
 #'
-#' @param roads A dataframe containing road segment data. Expected fields include segment identifiers
-#'        specified by `road_id_vars`, as well as the starting and ending milepost variables specified
-#'        by `start_mp` and `end_mp`.
-#' @param crashes A dataframe containing crash data. Expected fields include crash location specified
-#'        by `crash_mp` and the same segment identifiers as `roads` specified by `road_id_vars`.
+#' @param roads A data frame containing road segment data. Expected fields include segment identifiers
+#'   specified by `road_id_vars`, as well as the starting and ending milepost variables specified
+#'   by `start_mp` and `end_mp`.
+#' @param crashes A data frame containing crash data. Expected fields include crash location specified
+#'   by `crash_mp` and the same segment identifiers as `roads` specified by `road_id_vars`.
 #' @param road_id_vars A character vector specifying the column names that uniquely identify each road
-#'        segment. For example, `c("County", "RouteNo", "Region")` or `c("RouteID")` if only a single
-#'        identifier is required. The values in `road_id_vars` must be strings (characters).
+#'   segment. For example, `c("County", "RouteNo", "Region")` or `c("RouteID")` if only a single
+#'   identifier is required.
 #' @param start_mp A string specifying the name of the column in `roads` that represents the starting
-#'        milepost or measurement for each road segment. The values in `start_mp` must be numeric.
+#'   milepost or measurement for each road segment.
 #' @param end_mp A string specifying the name of the column in `roads` that represents the ending
-#'        milepost or measurement for each road segment. The values in `end_mp` must be numeric.
+#'   milepost or measurement for each road segment.
 #' @param crash_mp A string specifying the name of the column in `crashes` that represents the crash
-#'        location (e.g., milepoint or distance). The values in `crash_mp` must be numeric.
-#' @param conditions Optional. A condition or set of conditions for filtering the crashes dataframe
-#'        before aggregation. This can be specified as a character string (e.g., `"Severity > 2"`),
-#'        an expression (e.g., `expression(Severity > 2)`), or a list of expressions
-#'        (e.g., `list(expression(Severity > 2), expression(Time < 6 | Time > 18))`). If `NULL`
-#'        (default), no additional conditions are applied.
+#'   location (e.g., milepoint or distance).
+#' @param conditions Optional. A condition or set of conditions for filtering the crashes data frame
+#'   before aggregation. This can be specified as a character string (e.g., `"Severity > 2"`),
+#'   an expression (e.g., `expression(Severity > 2)`), or a list of expressions
+#'   (e.g., `list(expression(Severity > 2), expression(Time < 6 | Time > 18))`). If `NULL`
+#'   (default), no additional conditions are applied.
 #' @param countvarname Optional. A string for the name of the new variable with the crash counts.
-#'        The default is "Total_Crashes" but should be specified by the user for any time conditions
-#'        are provided.
+#'   The default is `"Total_Crashes"` but should be specified by the user for any time conditions
+#'   are provided.
 #'
-#' @return A dataframe with the original road dataframe and the new variable that has the crash
-#'         counts for the specified conditions (if any).
+#' @return A data frame with the original road data and a new variable that has the crash
+#'   counts for the specified conditions (if any).
 #' @import dplyr
-#'
 #' @examples
 #' set.seed(123)
 #' roads <- data.frame(
@@ -62,7 +61,7 @@
 #' )
 #'
 #' # Simple merge
-#' result_basic <- crashCounts(
+#' result_basic <- crashCounts.seg(
 #'   roads = roads,
 #'   crashes = crashes,
 #'   road_id_vars = c("County", "RouteNo", "Region"),
@@ -74,97 +73,75 @@
 #'
 #' # View the result
 #' print(result_basic)
-#'
-#' # Adding a condition
-#' result_severity <- crashCounts(
-#'   roads = result_basic, # Use the roads dataframe that has the total crashes
-#'   crashes = crashes,
-#'   road_id_vars = c("County", "RouteNo", "Region"),
-#'   start_mp = "BeginMeas",
-#'   end_mp = "EndMeas",
-#'   crash_mp = "Dist",
-#'   conditions = "Severity > 2",
-#'   countvarname = "FatalInjury_Crashes"
-#' )
-#'
-#' # View the result
-#' print(result_severity)
-#'
-#' # Alternative way to add a condition
-#'
-#' result_severity <- crashCounts(
-#'   roads = result_basic, # Use the roads dataframe that has the total crashes
-#'   crashes = crashes,
-#'   road_id_vars = c("County", "RouteNo", "Region"),
-#'   start_mp = "BeginMeas",
-#'   end_mp = "EndMeas",
-#'   crash_mp = "Dist",
-#'   conditions = expression(Severity > 2),
-#'   countvarname = "FatalInjury_Crashes"
-#' )
-#'
-#' # View the result
-#' print(result_severity)
-#'
-#'
-#' # Adding multiple conditions
-#' result_multiple <- crashCounts(
-#'   roads = result_severity,
-#'   crashes = crashes,
-#'   road_id_vars = c("County", "RouteNo", "Region"),
-#'   start_mp = "BeginMeas",
-#'   end_mp = "EndMeas",
-#'   crash_mp = "Dist",
-#'   conditions = list(
-#'     expression(Severity > 2),
-#'     expression(Time < 6 | Time > 18)  # Assuming nighttime is before 6 AM or after 6 PM
-#'   ),
-#'   countvarname = "NightFatalInj_Crashes"
-#' )
-#'
-#' # View the result
-#' print(result_multiple)
 #' @export
-crashCounts <- function(roads, crashes,
-                        road_id_vars,
-                        start_mp,
-                        end_mp,
-                        crash_mp,
-                        conditions = NULL,
-                        countvarname = "Total_Crashes") {
+crashCounts.seg <- function(
+    roads,
+    crashes,
+    road_id_vars,
+    start_mp,
+    end_mp,
+    crash_mp,
+    conditions = NULL,
+    countvarname = "Total_Crashes"
+) {
+  library(dplyr)
 
-  # Perform the join with criteria using dynamic identifiers and boundaries
-  merged_data <- crashes %>%
-    inner_join(roads, by = road_id_vars) %>%
-    filter(get(crash_mp) >= get(start_mp) & get(crash_mp) < get(end_mp))
+  # Ensure that start_mp, end_mp, and crash_mp are numeric
+  roads <- roads %>%
+    mutate(
+      across(all_of(c(start_mp, end_mp)), as.numeric)
+    )
+
+  crashes <- crashes %>%
+    mutate(
+      across(all_of(crash_mp), as.numeric)
+    )
 
   # Apply additional user-specified conditions if provided
   if (!is.null(conditions)) {
     if (is.character(conditions)) {
-      merged_data <- merged_data %>%
+      crashes <- crashes %>%
         filter(eval(parse(text = conditions)))
     } else if (is.expression(conditions)) {
-      merged_data <- merged_data %>%
+      crashes <- crashes %>%
         filter(eval(conditions))
     } else if (is.list(conditions)) {
       for (cond in conditions) {
-        merged_data <- merged_data %>%
+        crashes <- crashes %>%
           filter(eval(cond))
       }
     }
   }
 
-  # Calculate crash counts per segment per year with the additional conditions
-  countData <- merged_data %>%
-    group_by(across(all_of(c(road_id_vars, start_mp, end_mp)))) %>%
-    summarise(
-      NumCrashes = n(),
-      .groups = 'drop'  # Un-group after summarizing
+  # Merge crashes to roads on road_id_vars
+  merged_data <- roads %>%
+    left_join(crashes, by = road_id_vars)
+
+  # Filter merged data where crash_mp is between start_mp and end_mp
+  merged_data <- merged_data %>%
+    filter(
+      .data[[crash_mp]] >= .data[[start_mp]] & .data[[crash_mp]] < .data[[end_mp]] |
+        is.na(.data[[crash_mp]])
     )
 
-  roaddata <- dplyr::left_join(roads, dplyr::distinct(countData), relationship = "many-to-one")
-  names(roaddata)[length(names(roaddata))] <- countvarname
-  roaddata[countvarname] <- roaddata[countvarname] %>% replace(is.na(.), 0) # Any that didn't have crashes should have a value of 0
+  # Count crashes per road segment
+  crash_counts <- merged_data %>%
+    group_by(across(all_of(c(road_id_vars, start_mp, end_mp)))) %>%
+    summarise(
+      NumCrashes = sum(!is.na(.data[[crash_mp]])),
+      .groups = 'drop'
+    )
+
+  # Merge crash counts back to roads
+  roaddata <- roads %>%
+    left_join(crash_counts, by = c(road_id_vars, start_mp, end_mp))
+
+  # Replace NA crash counts with zero
+  roaddata[[countvarname]] <- tidyr::replace_na(roaddata$NumCrashes, 0)
+
+  # Remove temporary NumCrashes column
+  roaddata <- roaddata %>%
+    select(-NumCrashes)
 
   return(roaddata)
 }
