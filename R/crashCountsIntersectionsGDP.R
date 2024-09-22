@@ -136,10 +136,6 @@ crashCounts.int <- function(
     projection_working = NULL
 ) {
 
-  library(dplyr)
-  library(sf)
-  library(tidyr)
-
   # If no identifiers are given for the intersections, create one
   if (is.null(int_id_vars)) {
     intersections <- intersections %>%

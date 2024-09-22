@@ -581,6 +581,95 @@ test_that("crashCounts.seg works with conditions as list", {
   expect_true(is.numeric(result$Night_Severe_Crashes))
 })
 
+test_that("crashCounts.int",{
+
+    intersections_df <- data.frame(
+      intersection_id = 1:3,
+      latitude = c(34.0522, 34.0525, 34.0528),
+      longitude = c(-118.2437, -118.2440, -118.2443),
+      routes = c("Route66,I-5", "I-5,I-10", "Route66,I-10")
+    )
+
+    # Sample crash data with route IDs
+    crashes_df <- data.frame(
+      crash_id = 1:5,
+      crash_latitude = c(34.0520, 34.0526, 34.0527, 34.0510, 34.0530),
+      crash_longitude = c(-118.2430, -118.2441, -118.2442, -118.2445, -118.2446),
+      Severity = c(1, 3, 2, 5, 4),
+      Time = c(2, 15, 20, 5, 23),
+      route_id = c("Route66", "I-5", "I-10", "I-5", "Route66")
+    )
+
+    # Run the function
+    result <- crashCounts.int(
+      intersections = intersections_df,
+      crashes = crashes_df,
+      int_lat = "latitude",
+      int_long = "longitude",
+      crash_lat = "crash_latitude",
+      crash_long = "crash_longitude",
+      int_id_vars = c("intersection_id"),
+      crashRoute = "route_id",
+      intersectionRoutes = "routes",
+      dist_feet = 500,
+      countvarname = "Crashes",
+      projection_input = 4326,
+      projection_working = 3857
+    )
+
+  expect_true("Crashes" %in% names(result))
+})
+
+
+test_that("crashCounts.int Errors",{
+
+  intersections_df <- data.frame(
+    intersection_id = 1:3,
+    latitude = c(34.0522, 34.0525, 34.0528),
+    longitude = c(-118.2437, -118.2440, -118.2443),
+    routes = c("Route66,I-5", "I-5,I-10", "Route66,I-10")
+  )
+
+  # Sample crash data with route IDs
+  crashes_df <- data.frame(
+    crash_id = 1:5,
+    crash_latitude = c(34.0520, 34.0526, 34.0527, 34.0510, 34.0530),
+    crash_longitude = c(-118.2430, -118.2441, -118.2442, -118.2445, -118.2446),
+    Severity = c(1, 3, 2, 5, 4),
+    Time = c(2, 15, 20, 5, 23),
+    route_id = c("Route66", "I-5", "I-10", "I-5", "Route66")
+  )
+
+  # Run the function
+  expect_error(crashCounts.int(
+    intersections = intersections_df,
+    crashes = crashes_df,
+    int_coords = "latitude",
+    crash_lat = "latitude",
+    crash_long = "longitude",
+    int_id_vars = c("intersection_id"),
+  ))
+
+  expect_error(crashCounts.int(
+    intersections = intersections_df,
+    crashes = crashes_df,
+    int_lat = "latitude",
+    int_long = "longitude",
+    crash_lat = "latitude",
+    crash_long = "longitude",
+    int_id_vars = c("intersection_id"),
+  ))
+
+  expect_error(crashCounts.int(
+    intersections = intersections_df,
+    crashes = crashes_df,
+    int_lat = "latitude",
+    int_long = "longitude",
+    crash_coords = "crash_latitude",
+    intersectionRoutes = "routes"))
+
+})
+
 test_that("crashCounts.int works with geospatial data",{
 
   # Using provided datasets
@@ -595,4 +684,40 @@ test_that("crashCounts.int works with geospatial data",{
   )
 
   expect_true("Total_Crashes" %in% names(result))
+})
+
+test_that("crashCounts.int works with conditions",{
+
+  # Using provided datasets
+  data(crashes)
+  data(intersections)
+
+  # Run the function
+  result <- crashCounts.int(
+    intersections = intersections,
+    crashes = crashes,
+    dist_feet = 300,
+    conditions = expression(CSEVERITY > 3)
+  )
+
+  expect_true("Total_Crashes" %in% names(result))
+
+
+  result2 <- crashCounts.int(
+    intersections = intersections,
+    crashes = crashes,
+    dist_feet = 300,
+    conditions = expression(CSEVERITY <5 & CSEVERITY > 2))
+
+  expect_true("Total_Crashes" %in% names(result2))
+
+  result3 <- crashCounts.int(
+    intersections = intersections,
+    crashes = crashes,
+    dist_feet = 300,
+    conditions = "CSEVERITY <5")
+
+  expect_true("Total_Crashes" %in% names(result3))
+
+
 })
